@@ -14,21 +14,22 @@
       var canvas = document.getElementById('canvas'),
           context = canvas.getContext('2d'),
           ball = new Ball(),
-          angle = 0,
+          angleX = 0,
+          angleY = 0,
+          centerX = canvas.width / 2,
           centerY = canvas.height / 2,
           range = 50,
-          xspeed = 1,
-          speed = 0.1;
-
-      ball.x = 0;
+          xspeed = 0.08,
+          yspeed = 0.11;
 
       (function drawFrame () {
         window.requestAnimationFrame(drawFrame, canvas);
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        ball.x += xspeed;
-        ball.y = centerY + Math.sin(angle) * range;
-        angle += speed;
+        ball.x = centerX + Math.sin(angleX) * range;
+        ball.y = centerY + Math.sin(angleY) * range;
+        angleX += xspeed;
+        angleY += yspeed;
         ball.draw(context);
       }());
     };
