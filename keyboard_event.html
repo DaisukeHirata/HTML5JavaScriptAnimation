@@ -10,7 +10,13 @@
     <canvas id="canvas" width="400" height="400"></canvas>
     <script>
     window.onload = function () {
-      // our code here...
+
+      function onKeyboardEvent (event) {
+        console.log(event.type);
+      }
+
+      window.addEventListener('keydown', onKeyboardEvent, false);
+      window.addEventListener('keyup', onKeyboardEvent, false);
     };
     </script>
   </body>
