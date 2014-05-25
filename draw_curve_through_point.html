@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="style.css">
+    <script src="utils.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <script>
+    window.onload = function () {
+      var canvas = document.getElementById('canvas'),
+          context = canvas.getContext('2d'),
+          mouse = utils.captureMouse(canvas),
+          startX = 100,
+          startY = 200,
+          endX   = 300,
+          endY   = 200;
+
+      canvas.addEventListener('mousemove', function () {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+
+          var controlX = mouse.x * 2 - (startX + endX) / 2,
+              controlY = mouse.y * 2 - (startY + endY) / 2;
+
+          // curve toward mouse
+          context.beginPath();
+          context.moveTo(startX, startY);
+          context.quadraticCurveTo(controlX, controlY, endX, endY);
+          context.stroke();
+
+          // draw control point
+          context.fillRect(controlX, controlY, 10, 10);
+
+          // centerpoint between start and end
+          context.fillRect((startX + endX) / 2, (startY + endY) / 2, 3, 3);
+
+      }, false);
+
+
+    };
+    </script>
+  </body>
+</html>

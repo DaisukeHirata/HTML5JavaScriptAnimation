@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="style.css">
+    <script src="utils.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <script>
+    window.onload = function () {
+      var canvas = document.getElementById('canvas'),
+          context = canvas.getContext('2d'),
+          mouse = utils.captureMouse(canvas),
+          startX = 150,
+          startY = 200,
+          endX   = 250,
+          endY   = 200;
+
+      // curve toward mouse
+      context.beginPath();
+      context.moveTo(startX, startY);
+      context.fillStyle = "#00FFAA";
+      context.quadraticCurveTo(200, 0, endX, endY);
+      context.closePath();
+      context.fill();
+      context.stroke();
+
+    };
+    </script>
+  </body>
+</html>
