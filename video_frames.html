@@ -22,15 +22,28 @@
     </video>
   
     <script src="utils.js"></script>
+    <script src="Stats.js"></script>
     <script>
     window.onload = function () {
       var canvas = document.getElementById('canvas'),
           context = canvas.getContext('2d'),
-          video = document.getElementById('movieclip');
+          video = document.getElementById('movieclip'),
+          stats = new Stats();
+
+      stats.setMode(0); // 0: fps, 1: ms
+      // align to right
+      stats.domElement.style.position = 'absolute';
+      stats.domElement.style.right = '0px';
+      stats.domElement.style.top = '0px';
+      document.body.appendChild( stats.domElement );
 
       (function drawFrame () {
+        stats.begin();
+
         window.requestAnimationFrame(drawFrame, canvas);
         context.drawImage(video, 0, 0);
+
+        stats.end();
       }());
     };
     </script>

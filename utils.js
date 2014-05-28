@@ -194,3 +194,14 @@ window.utils.intersects = function (rectA, rectB) {
            rectA.y + rectA.height < rectB.y ||
            rectB.y + rectB.height < rectA.y);
 };
+
+window.utils.initStats = function() {
+  var stats = new Stats();
+  stats.setMode(0); // 0: fps, 1: ms
+  // align to right
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.right = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild( stats.domElement );
+  return stats;
+};
