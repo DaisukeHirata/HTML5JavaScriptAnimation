@@ -31,7 +31,6 @@
 
       function draw (ball) {
         ball.vy += gravity;
-        console.log(document.getElementById('wind').value);
         ball.vx += parseFloat(document.getElementById('wind').value);
         ball.x += ball.vx;
         ball.y += ball.vy;
