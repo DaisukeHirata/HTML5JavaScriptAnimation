@@ -28,46 +28,31 @@
 
       var canvas = document.getElementById('canvas'),
           context = canvas.getContext('2d'),
-          copyContext = createCopyContext(canvas), 
+          copyCanvas = createCopyCanvas(canvas),
+          copyContext = copyCanvas.getContext('2d'),
           video = document.getElementById('movieclip'),
           stats = Stat.initStats();
 
-      function createCopyContext (canvas) {
+      function createCopyCanvas (canvas) {
         var copy = document.createElement('canvas');
         copy.width = canvas.width;
         copy.height = canvas.height;
-        return copy.getContext('2d');
+        return copy;
       }
 
-      (function drawFrame () {
+      function edge (imageData, copiedImageData, mono, invert) {
 
-        stats.begin();
+        var pixels     = imageData.data,
+            pixelsCopy = copiedImageData.data,
+            h  = imageData.height,
+            w  = imageData.width,
+            w4 = w*4,
+            c  = -1/8,
+            weight = 1/c;
 
-        window.requestAnimationFrame(drawFrame, canvas);
-        copyContext.drawImage(video, 0, 0);
 
-        var imageData  = copyContext.getImageData(0, 0, canvas.width, canvas.height),
-            data       = imageData.data,
-            dataCopy   = copyContext.getImageData(0, 0, canvas.width, canvas.height).data;
+        for (var y = h; y > 0; y--) {
 
-        var mono = false;
-        var invert = false;
-
-        var c = -1/8;
-        var kernel = [
-          [c,   c,  c],
-          [c,   1,  c],
-          [c,   c,  c]
-        ];
-
-        weight = 1/c;
-
-        var w = canvas.width;
-        var h = canvas.height;
-
-        var w4 = w*4;
-        var y = h;
-        do {
           var offsetY = (y-1)*w4;
 
           var nextY = (y == h) ? y - 1 : y;
@@ -76,46 +61,46 @@
           var offsetYPrev = prevY*w*4;
           var offsetYNext = nextY*w*4;
 
-          var x = w;
-          do {
-            var offset = offsetY + (x*4-4);
+          for (var x = w; x > 0; x--) {
 
+            var offset = offsetY + (x*4-4);
             var offsetPrev = offsetYPrev + ((x == 1) ? 0 : x-2) * 4;
             var offsetNext = offsetYNext + ((x == w) ? x-1 : x) * 4;
-    
-            var r = ((dataCopy[offsetPrev-4]
-              + dataCopy[offsetPrev]
-              + dataCopy[offsetPrev+4]
-              + dataCopy[offset-4]
-              + dataCopy[offset+4]
-              + dataCopy[offsetNext-4]
-              + dataCopy[offsetNext]
-              + dataCopy[offsetNext+4]) * c
-              + dataCopy[offset]
+
+            var r = ((pixelsCopy[offsetPrev-4]
+              + pixelsCopy[offsetPrev]
+              + pixelsCopy[offsetPrev+4]
+              + pixelsCopy[offset-4]
+              + pixelsCopy[offset+4]
+              + pixelsCopy[offsetNext-4]
+              + pixelsCopy[offsetNext]
+              + pixelsCopy[offsetNext+4]) * c
+              + pixelsCopy[offset]
               ) 
               * weight;
     
-            var g = ((dataCopy[offsetPrev-3]
-              + dataCopy[offsetPrev+1]
-              + dataCopy[offsetPrev+5]
-              + dataCopy[offset-3]
-              + dataCopy[offset+5]
-              + dataCopy[offsetNext-3]
-              + dataCopy[offsetNext+1]
-              + dataCopy[offsetNext+5]) * c
-              + dataCopy[offset+1])
+            var g = ((pixelsCopy[offsetPrev-3]
+              + pixelsCopy[offsetPrev+1]
+              + pixelsCopy[offsetPrev+5]
+              + pixelsCopy[offset-3]
+              + pixelsCopy[offset+5]
+              + pixelsCopy[offsetNext-3]
+              + pixelsCopy[offsetNext+1]
+              + pixelsCopy[offsetNext+5]) * c
+              + pixelsCopy[offset+1])
               * weight;
     
-            var b = ((dataCopy[offsetPrev-2]
-              + dataCopy[offsetPrev+2]
-              + dataCopy[offsetPrev+6]
-              + dataCopy[offset-2]
-              + dataCopy[offset+6]
-              + dataCopy[offsetNext-2]
-              + dataCopy[offsetNext+2]
-              + dataCopy[offsetNext+6]) * c
-              + dataCopy[offset+2])
+            var b = ((pixelsCopy[offsetPrev-2]
+              + pixelsCopy[offsetPrev+2]
+              + pixelsCopy[offsetPrev+6]
+              + pixelsCopy[offset-2]
+              + pixelsCopy[offset+6]
+              + pixelsCopy[offsetNext-2]
+              + pixelsCopy[offsetNext+2]
+              + pixelsCopy[offsetNext+6]) * c
+              + pixelsCopy[offset+2])
               * weight;
+
 
             if (mono) {
               var brightness = (r*0.3 + g*0.59 + b*0.11)||0;
@@ -137,12 +122,26 @@
               if (b > 255 ) b = 255;
             }
 
-            data[offset] = r;
-            data[offset+1] = g;
-            data[offset+2] = b;
+            pixels[offset] = r;
+            pixels[offset+1] = g;
+            pixels[offset+2] = b;
+          }
+        }
+      }
 
-          } while (--x);
-        } while (--y);
+      (function drawFrame () {
+
+        stats.begin();
+
+        window.requestAnimationFrame(drawFrame, canvas);
+        copyContext.drawImage(video, 0, 0);
+
+        var imageData       = copyContext.getImageData(0, 0, canvas.width, canvas.height),
+            copiedImageData = copyContext.getImageData(0, 0, canvas.width, canvas.height),
+            mono = false,
+            invert = false;
+
+        edge(imageData, copiedImageData, mono, invert);
 
         context.putImageData(imageData, 0, 0);
 
