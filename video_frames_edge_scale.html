@@ -13,9 +13,7 @@
   <body>
     <header>Avoid cross domain security error. $ http-server -p 8000 </header>
     <canvas id="canvas" width="600" height="360"></canvas>
-    <input id="r_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
-    <input id="g_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
-    <input id="b_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
+    <aside>Video file may take a moment to load.</aside>
 
     <video id="movieclip" width="640" height="360" autoplay>
       <source src="./assets/movieclip.mp4" type="video/mp4"/>
@@ -35,14 +33,15 @@
           video = document.getElementById('movieclip'),
           stats = Stat.initStats();
 
+
       function createCopyCanvas (canvas) {
         var copy = document.createElement('canvas');
-        copy.width = canvas.width;
-        copy.height = canvas.height;
+        copy.width = canvas.width/2;
+        copy.height = canvas.height/2;
         return copy;
       }
 
-      function edge (imageData, copiedImageData, mono, invert, rWeightNumerator, gWeightNumerator, bWeightNumerator) {
+      function edge (imageData, copiedImageData, mono, invert) {
 
         var pixels     = imageData.data,
             pixelsCopy = copiedImageData.data,
@@ -79,8 +78,8 @@
               + pixelsCopy[offsetNext+4]) * c
               + pixelsCopy[offset]
               ) 
-              * rWeightNumerator/c;
-
+              * weight;
+    
             var g = ((pixelsCopy[offsetPrev-3]
               + pixelsCopy[offsetPrev+1]
               + pixelsCopy[offsetPrev+5]
@@ -90,7 +89,7 @@
               + pixelsCopy[offsetNext+1]
               + pixelsCopy[offsetNext+5]) * c
               + pixelsCopy[offset+1])
-              * gWeightNumerator/c;
+              * weight;
     
             var b = ((pixelsCopy[offsetPrev-2]
               + pixelsCopy[offsetPrev+2]
@@ -101,7 +100,7 @@
               + pixelsCopy[offsetNext+2]
               + pixelsCopy[offsetNext+6]) * c
               + pixelsCopy[offset+2])
-              * bWeightNumerator/c;
+              * weight;
 
 
             if (mono) {
@@ -131,25 +130,32 @@
         }
       }
 
-      var callCount = 0;
       (function drawFrame () {
 
         stats.begin();
 
         window.requestAnimationFrame(drawFrame, canvas);
-        copyContext.drawImage(video, 0, 0);
+        //copyContext.drawImage(video, 0, 0);
+        copyContext.drawImage(
+          video,
+          0, 0, canvas.width,  canvas.height,
+          0, 0, copyCanvas.width,    copyCanvas.height
+        );
 
-        var imageData       = copyContext.getImageData(0, 0, canvas.width, canvas.height),
-            copiedImageData = copyContext.getImageData(0, 0, canvas.width, canvas.height),
+        var imageData       = copyContext.getImageData(0, 0, copyCanvas.width, copyCanvas.height),
+            copiedImageData = copyContext.getImageData(0, 0, copyCanvas.width, copyCanvas.height),
             mono = false,
-            invert = false,
-            rWeight = parseFloat(document.getElementById('r_weight').value, 10) || 0.0,
-            gWeight = parseFloat(document.getElementById('g_weight').value, 10) || 0.0,
-            bWeight = parseFloat(document.getElementById('b_weight').value, 10) || 0.0;
+            invert = false;
 
-        edge(imageData, copiedImageData, mono, invert, rWeight, gWeight, bWeight);
+        edge(imageData, copiedImageData, mono, invert);
 
-        context.putImageData(imageData, 0, 0);
+        copyContext.putImageData(imageData, 0, 0);
+        context.drawImage(
+          copyCanvas,
+          0, 0, canvas.width/2,  canvas.height/2,
+          0, 0, canvas.width,  canvas.height
+        );
+
 
         stats.end();
 
