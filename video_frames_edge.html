@@ -13,6 +13,8 @@
   <body>
     <header>Avoid cross domain security error. $ http-server -p 8000 </header>
     <canvas id="canvas" width="600" height="360"></canvas>
+    <input id="mono" type="checkbox" name="mono"/>
+    <input id="invert" type="checkbox" name="invert"/>
     <input id="r_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
     <input id="g_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
     <input id="b_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
@@ -46,22 +48,26 @@
 
         var pixels     = imageData.data,
             pixelsCopy = copiedImageData.data,
+            //pixelsCopyBuffer = copiedImageData.data.buffer,
+            //pixelsCopy = new Uint8ClampedArray(pixelsCopyBuffer), 
             h  = imageData.height,
             w  = imageData.width,
             w4 = w*4,
             c  = -1/8,
-            weight = 1/c;
+            rWeight = rWeightNumerator/c,
+            gWeight = gWeightNumerator/c,
+            bWeight = bWeightNumerator/c;
 
 
         for (var y = h; y > 0; y--) {
 
           var offsetY = (y-1)*w4;
 
-          var nextY = (y == h) ? y - 1 : y;
           var prevY = (y == 1) ? 0 : y-2;
+          var nextY = (y == h) ? y - 1 : y;
 
-          var offsetYPrev = prevY*w*4;
-          var offsetYNext = nextY*w*4;
+          var offsetYPrev = prevY*w4;
+          var offsetYNext = nextY*w4;
 
           for (var x = w; x > 0; x--) {
 
@@ -79,7 +85,7 @@
               + pixelsCopy[offsetNext+4]) * c
               + pixelsCopy[offset]
               ) 
-              * rWeightNumerator/c;
+              * rWeight;
 
             var g = ((pixelsCopy[offsetPrev-3]
               + pixelsCopy[offsetPrev+1]
@@ -90,7 +96,7 @@
               + pixelsCopy[offsetNext+1]
               + pixelsCopy[offsetNext+5]) * c
               + pixelsCopy[offset+1])
-              * gWeightNumerator/c;
+              * gWeight;
     
             var b = ((pixelsCopy[offsetPrev-2]
               + pixelsCopy[offsetPrev+2]
@@ -101,8 +107,7 @@
               + pixelsCopy[offsetNext+2]
               + pixelsCopy[offsetNext+6]) * c
               + pixelsCopy[offset+2])
-              * bWeightNumerator/c;
-
+              * bWeight;
 
             if (mono) {
               var brightness = (r*0.3 + g*0.59 + b*0.11)||0;
@@ -124,7 +129,7 @@
               if (b > 255 ) b = 255;
             }
 
-            pixels[offset] = r;
+            pixels[offset]   = r;
             pixels[offset+1] = g;
             pixels[offset+2] = b;
           }
@@ -141,8 +146,8 @@
 
         var imageData       = copyContext.getImageData(0, 0, canvas.width, canvas.height),
             copiedImageData = copyContext.getImageData(0, 0, canvas.width, canvas.height),
-            mono = false,
-            invert = false,
+            mono = document.getElementById('mono').checked,
+            invert = document.getElementById('invert').checked,
             rWeight = parseFloat(document.getElementById('r_weight').value, 10) || 0.0,
             gWeight = parseFloat(document.getElementById('g_weight').value, 10) || 0.0,
             bWeight = parseFloat(document.getElementById('b_weight').value, 10) || 0.0;

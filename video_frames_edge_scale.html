@@ -12,8 +12,12 @@
   </head>
   <body>
     <header>Avoid cross domain security error. $ http-server -p 8000 </header>
-    <canvas id="canvas" width="600" height="360"></canvas>
-    <aside>Video file may take a moment to load.</aside>
+    <canvas id="canvas" width="640" height="360"></canvas>
+    <input id="mono" type="checkbox" name="mono"/>
+    <input id="invert" type="checkbox" name="invert"/>
+    <input id="r_weight" type="range" value="0.4" min="0.0" max="3" step="0.1"/>
+    <input id="g_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
+    <input id="b_weight" type="range" value="1.0" min="0.0" max="3" step="0.1"/>
 
     <video id="movieclip" width="640" height="360" autoplay>
       <source src="./assets/movieclip.mp4" type="video/mp4"/>
@@ -36,12 +40,12 @@
 
       function createCopyCanvas (canvas) {
         var copy = document.createElement('canvas');
-        copy.width = canvas.width/2;
-        copy.height = canvas.height/2;
+        copy.width = canvas.width/1.2;
+        copy.height = canvas.height/1.2;
         return copy;
       }
 
-      function edge (imageData, copiedImageData, mono, invert) {
+      function edge (imageData, copiedImageData, mono, invert, rWeightNumerator, gWeightNumerator, bWeightNumerator) {
 
         var pixels     = imageData.data,
             pixelsCopy = copiedImageData.data,
@@ -49,7 +53,9 @@
             w  = imageData.width,
             w4 = w*4,
             c  = -1/8,
-            weight = 1/c;
+            rWeight = rWeightNumerator/c,
+            gWeight = gWeightNumerator/c,
+            bWeight = bWeightNumerator/c;
 
 
         for (var y = h; y > 0; y--) {
@@ -78,7 +84,7 @@
               + pixelsCopy[offsetNext+4]) * c
               + pixelsCopy[offset]
               ) 
-              * weight;
+              * rWeight;
     
             var g = ((pixelsCopy[offsetPrev-3]
               + pixelsCopy[offsetPrev+1]
@@ -89,7 +95,7 @@
               + pixelsCopy[offsetNext+1]
               + pixelsCopy[offsetNext+5]) * c
               + pixelsCopy[offset+1])
-              * weight;
+              * gWeight;
     
             var b = ((pixelsCopy[offsetPrev-2]
               + pixelsCopy[offsetPrev+2]
@@ -100,7 +106,7 @@
               + pixelsCopy[offsetNext+2]
               + pixelsCopy[offsetNext+6]) * c
               + pixelsCopy[offset+2])
-              * weight;
+              * bWeight;
 
 
             if (mono) {
@@ -130,32 +136,36 @@
         }
       }
 
+      var callCount = 0;
       (function drawFrame () {
 
         stats.begin();
 
         window.requestAnimationFrame(drawFrame, canvas);
-        //copyContext.drawImage(video, 0, 0);
+
         copyContext.drawImage(
           video,
-          0, 0, canvas.width,  canvas.height,
-          0, 0, copyCanvas.width,    copyCanvas.height
+          0, 0, canvas.width,      canvas.height,
+          0, 0, copyCanvas.width,  copyCanvas.height
         );
 
         var imageData       = copyContext.getImageData(0, 0, copyCanvas.width, copyCanvas.height),
             copiedImageData = copyContext.getImageData(0, 0, copyCanvas.width, copyCanvas.height),
-            mono = false,
-            invert = false;
+            mono = document.getElementById('mono').checked,
+            invert = document.getElementById('invert').checked,
+            rWeight = parseFloat(document.getElementById('r_weight').value, 10) || 0.0,
+            gWeight = parseFloat(document.getElementById('g_weight').value, 10) || 0.0,
+            bWeight = parseFloat(document.getElementById('b_weight').value, 10) || 0.0;
 
-        edge(imageData, copiedImageData, mono, invert);
+        edge(imageData, copiedImageData, mono, invert, rWeight, gWeight, bWeight);
 
+        context.clearRect(0,0,canvas.width,canvas.height);
         copyContext.putImageData(imageData, 0, 0);
         context.drawImage(
           copyCanvas,
-          0, 0, canvas.width/2,  canvas.height/2,
+          0, 0, copyCanvas.width,  copyCanvas.height,
           0, 0, canvas.width,  canvas.height
         );
-
 
         stats.end();
 
